@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/spfx-serve.schema.json",
+  "port": 4321,
+  "https": true,
+  "serveConfigurations": {
+    "default": {
+      "pageUrl": "https://mqxd.sharepoint.com/sites/Sandpit/Shared%20Documents/Forms/AllItems.aspx",
+      "customActions": {
+        "1087c699-ac18-489d-8b5f-01c74e836ba8": {
+          "location": "ClientSideExtension.ListViewCommandSet.CommandBar",
+          "properties": {
+            "sampleTextOne": "One item is selected in the list",
+            "sampleTextTwo": "This command is always visible."
+          }
+        }
+      }
+    },
+    "requestDocumentApproval": {
+      "pageUrl": "https://mqxd.sharepoint.com/sites/Sandpit/Shared%20Documents/Forms/AllItems.aspx",
+      "customActions": {
+        "1087c699-ac18-489d-8b5f-01c74e836ba8": {
+          "location": "ClientSideExtension.ListViewCommandSet.CommandBar",
+          "properties": {
+            "sampleTextOne": "One item is selected in the list",
+            "sampleTextTwo": "This command is always visible."
+          }
+        }
+      }
+    }
+  }
+}

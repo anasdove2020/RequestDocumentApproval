@@ -1,0 +1,25 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/command-set-extension-manifest.schema.json",
+
+  "id": "1087c699-ac18-489d-8b5f-01c74e836ba8",
+  "alias": "RequestDocumentApprovalCommandSet",
+  "componentType": "Extension",
+  "extensionType": "ListViewCommandSet",
+
+  // The "*" signifies that the version should be taken from the package.json
+  "version": "*",
+  "manifestVersion": 2,
+
+  // If true, the component can only be installed on sites where Custom Script is allowed.
+  // Components that allow authors to embed arbitrary script code should set this to true.
+  // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
+  "requiresCustomScript": false,
+
+  "items": {
+    "REQUEST_APPROVAL_COMMAND": {
+      "title": { "default": "Request Approval" },
+      "iconImageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/NlyAAAAAXNSR0IArs4c6QAAAv9JREFUaEPt20to1EAYB/B/qi4uu3Urq9KFqmBFQdCDsHjQehAqHmxpe/AgWgVBQQu9WBUET8UHCOLBQvHQuxSxSFuhehAEhSroRSjFF4Iv8F23LzXyRVOyaZLJZiftlzh7Kd1HMr/5vvlmkp3VdF3X8e9xc/gZGjtvmP/Oy98t63LoPdWAmmxlKOfXuIFJGSaaJThMtCc4W5lEJpUIJbWsB/0xMY33XwqzzhNGpD3BFw5sx4mWfOhgr9ohG80eLDu9WYJrq6vw5tMYxqd+zmSXrEizBJ9vrUM6mUBHz13paJZgqh0dzXl0DT6WjmYLpmJJSyLZaNZgGsCy0ezBstGRAMtERwYsCx0psAw0S3DQtayfxUmswNRRovW/AlvveIh6K2jq2T93+8krHOkaCnQ4+6WlqM0sIhxI6nJbSoFtvakiPB9jWKV0CT1gvz2kxrAawx7fPIjSo4TMC+2tKqUFt5bVtKSmpTn45qGcAa7GsBrDxfmjipYqWqpolVNT5X/2v67SCyo0dB+tx6H6ja49G5uiRdhzrXU43pSHprlnUizAzWf7fGGpGyIP7n/4HE9ff3SM7NfCJNq672B3vhZ7tq43Ih958K/fOio0bVYaE/bwlSFcuzeCZGIhetp3/UV7bUyLwvWw02i1Ys3XU4sXofdkY/zATtiighanCAuxcRjDZsr6wcaiShPCLzYW4FKwbMEPRt6iZllauGe6VCxLMC0k9l8aRG5pCgNnWrB6xRLHdaIbtnPfNmNTG1VmpweredjEfh6bMNq6YWUWfaebsDZXVdR2wu692I+BRy9mniegCMsqwrQBjS71Dl6+BRPshC4HywpshsoeZSt6eSYZOLLm8VmltBd6TXUGtEN/ePRdyWlsHQ8swdRAp0hbG+53zNoLF1uwFzooVjiG5+pHHrSh7OqxnaArGvvj+v1Ro5B9H58yXioHKwQ7TmQhPLlj0ypj+kk7gOl0JrowOe1r6vFqIovfLYnAJvrlh29ob9jsuqjwE4vIgP1g/LznD9a0ZeswWHa8AAAAAElFTkSuQmCC",
+      "type": "command"
+    }
+  }
+}

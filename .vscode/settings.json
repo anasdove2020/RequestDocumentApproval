@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "*.manifest.json": "jsonc"
+  },
+  "json.schemas": [
+    {
+      "fileMatch": ["*.manifest.json"],
+      "url": "https://developer.microsoft.com/json-schemas/spfx/command-set-extension-manifest.schema.json"
+    }
+  ]
+}
