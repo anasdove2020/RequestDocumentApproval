@@ -1,14 +1,25 @@
 import { BaseDialog } from '@microsoft/sp-dialog';
 
-export default class WarningDialog extends BaseDialog {
-  private message: string;
+export type DialogType = "success" | "warning";
 
-  constructor(message: string) {
+export default class GenericDialog extends BaseDialog {
+  private message: string;
+  private type: DialogType;
+
+  constructor(message: string, type: DialogType) {
     super();
     this.message = message;
+    this.type = type;
   }
 
   public render(): void {
+    const isSuccess = this.type === "success";
+
+    const title = isSuccess ? "Success" : "Warning";
+    const bgColor = isSuccess ? "#28a745" : "#f0ad4e";
+    const icon = isSuccess ? "&#10004;" : "&#9888;";
+    const iconColor = "white";
+
     this.domElement.innerHTML = `
       <div style="
         background:#fff;
@@ -37,13 +48,13 @@ export default class WarningDialog extends BaseDialog {
           width:60px; 
           height:60px; 
           border-radius:50%; 
-          background:#28a745; 
+          background:${bgColor}; 
           display:flex; 
           align-items:center; 
           justify-content:center; 
           margin:0 auto 20px auto;
         ">
-          <span style="color:white; font-size:28px;">&#10004;</span>
+          <span style="color:${iconColor}; font-size:28px;">${icon}</span>
         </div>
 
         <h2 style="
@@ -52,7 +63,7 @@ export default class WarningDialog extends BaseDialog {
           font-weight:600; 
           color:#000;
         ">
-          Success
+          ${title}
         </h2>
 
         <p style="
@@ -67,9 +78,9 @@ export default class WarningDialog extends BaseDialog {
         <button type="button" 
                 id="okButton" 
                 style="
-                  background:#28a745;
-                  border:none;
-                  color:white;
+                  background:#fff;
+                  border:1px solid rgb(138, 136, 134);
+                  color:rgb(50, 49, 48);
                   padding:12px 0;
                   font-size:14px;
                   font-weight:600;
@@ -83,15 +94,11 @@ export default class WarningDialog extends BaseDialog {
     `;
 
     this.domElement.querySelector('#okButton')?.addEventListener('click', () => {
-      this.close().catch(() => {
-        /* handle error */
-      });
+      this.close().catch(() => { /* handle error */ });
     });
 
     this.domElement.querySelector('#closeButton')?.addEventListener('click', () => {
-      this.close().catch(() => {
-        /* handle error */
-      });
+      this.close().catch(() => { /* handle error */ });
     });
   }
 }

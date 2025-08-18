@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Stack, Text, TooltipHost } from "@fluentui/react";
-import { ISelectedFile } from "../../../model/IRequestApprovalModalProps";
-import FileIcon from "../Common/FileIcon";
+import { ISelectedFile } from "../interfaces/IRequestApprovalModalProps";
+import FileIcon from "./FileIcon";
 
 export interface ISelectedFilesListProps {
   selectedFiles: ISelectedFile[];

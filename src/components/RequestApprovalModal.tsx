@@ -1,27 +1,12 @@
 import * as React from "react";
-import {
-  Modal,
-  PrimaryButton,
-  DefaultButton,
-  TextField,
-  Stack,
-  Text,
-  MessageBar,
-  MessageBarType,
-  ChoiceGroup,
-  IChoiceGroupOption,
-} from "@fluentui/react";
+import { Modal, PrimaryButton, DefaultButton, TextField, Stack, Text, MessageBar, MessageBarType, ChoiceGroup, IChoiceGroupOption} from "@fluentui/react";
 import { NormalPeoplePicker } from "office-ui-fabric-react/lib/Pickers";
 import { IPersonaProps } from "office-ui-fabric-react/lib/Persona";
-import {
-  IRequestApprovalModalProps,
-  IApprovalRequest,
-} from "../../../model/IRequestApprovalModalProps";
+import { IRequestApprovalModalProps, IApprovalRequest } from "../interfaces/IRequestApprovalModalProps";
 import { SelectedFilesList } from "./SelectedFilesList";
-import { UserSearchService } from "../../services/UserSearchService";
-import SharePointListService, {
-  ISharePointListService,
-} from "../../../services/SharePointAPI/SharePointListService";
+import { ISharePointService } from "../interfaces/ISharePointService";
+import { UserSearchService } from "../services/UserSearchService";
+import SharePointService from "../services/SharePointService";
 
 const selfApprovalOptions: IChoiceGroupOption[] = [
   { key: "true", text: "Yes" },
@@ -35,17 +20,11 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
   onSubmit,
   context
 }) => {
-  const [selfApproval, setSelfApproval] = React.useState<boolean | undefined>(
-    undefined
-  );
-  const [selectedApprovers, setSelectedApprovers] = React.useState<
-    IPersonaProps[]
-  >([]);
+  const [selfApproval, setSelfApproval] = React.useState<boolean | undefined>(undefined);
+  const [selectedApprovers, setSelectedApprovers] = React.useState<IPersonaProps[]>([]);
   const [comments, setComments] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = React.useState<string | undefined>(
-    undefined
-  );
+  const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
 
   const resetForm = React.useCallback((): void => {
     setSelfApproval(undefined);
@@ -60,62 +39,31 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
     onDismiss();
   }, [resetForm, onDismiss]);
 
-  const handleSelfApprovalChange = React.useCallback(
-    (
-      ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
-      option?: IChoiceGroupOption
-    ): void => {
+  const handleSelfApprovalChange = React.useCallback((_?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption): void => {
       if (option) {
         setSelfApproval(option.key === "true");
-        // Clear error message when selection changes
         if (errorMessage) setErrorMessage(undefined);
       }
     },
     [errorMessage]
   );
 
-  // PeoplePicker suggestion resolver - async search with native debouncing
   const onResolveSuggestions = React.useCallback(
-    async (
-      filterText: string,
-      currentPersonas?: IPersonaProps[]
-    ): Promise<IPersonaProps[]> => {
+    async (filterText: string, currentPersonas?: IPersonaProps[]): Promise<IPersonaProps[]> => {
       if (filterText.length >= 2) {
         try {
-          // TODO: Switch back to GraphPeopleService when Graph API permissions are resolved
-          // const users = await GraphPeopleService.searchUsers(filterText, 10);
-          const spService: ISharePointListService = context.serviceScope.consume(SharePointListService.serviceKey);
+          const spService: ISharePointService = context.serviceScope.consume(SharePointService.serviceKey);
           const spUsers = await spService.getUsers();
-          // console.log(_users[0]);
-
-          // Temporarily use mock data
           const users = await UserSearchService.searchUsers(spUsers, filterText, 10);
+          const selectedIds = new Set((currentPersonas || []).map((p) => p.id ?? p.secondaryText));
 
-          const selectedIds = new Set(
-            (currentPersonas || []).map((p) => p.id ?? p.secondaryText)
-          );
-
-          // return users.map(
-          //   (user) =>
-          //     ({
-          //       text: user.displayName,
-          //       secondaryText: user.mail,
-          //       key: user.mail,
-          //     } as IPersonaProps)
-          // );
-
-          return users
-          .filter((user) => !selectedIds.has(user.mail))
-          .map(
-            (user) =>
-              ({
-                text: user.displayName,
-                secondaryText: user.mail,
-                key: user.mail,
-              } as IPersonaProps)
-          );
+          return users.filter((user) => !selectedIds.has(user.mail)).map(
+            (user) => ({
+              text: user.displayName,
+              secondaryText: user.mail,
+              key: user.mail,
+            } as IPersonaProps));
         } catch (error) {
-          console.error("Error searching users:", error);
           return [];
         }
       }
@@ -124,28 +72,17 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
     []
   );
 
-  // Handle PeoplePicker changes
-  const onPeoplePickerChange = React.useCallback(
-    (items?: IPersonaProps[]): void => {
+  const onPeoplePickerChange = React.useCallback((items?: IPersonaProps[]): void => {
       setSelectedApprovers(items || []);
       if (errorMessage) setErrorMessage(undefined);
-    },
-    [errorMessage]
-  );
+    }, [errorMessage]);
 
-  const handleCommentsChange = React.useCallback(
-    (
-      event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-      newValue?: string
-    ): void => {
+  const handleCommentsChange = React.useCallback((_: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
       setComments(newValue || "");
       if (errorMessage) setErrorMessage(undefined);
-    },
-    [errorMessage]
-  );
+    }, [errorMessage]);
 
   const handleSubmit = React.useCallback(async (): Promise<void> => {
-    // Always require self-approval selection
     if (selfApproval === undefined) {
       setErrorMessage(
         "Please select whether you want to approve this yourself."
@@ -153,7 +90,6 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
       return;
     }
 
-    // If user selects false (not self-approving), validate approvers and comments
     if (selfApproval === false) {
       if (selectedApprovers.length === 0) {
         setErrorMessage("Please select at least one approver.");
@@ -269,14 +205,10 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
                       <span style={{ color: "#a4262c" }}>*</span>
                     </Text>
                     <NormalPeoplePicker
-                      // onResolveSuggestions={onResolveSuggestions}
                       onResolveSuggestions={(filterText, _) =>
                         onResolveSuggestions(filterText, selectedApprovers)
                       }
                       onChange={onPeoplePickerChange}
-                      // getTextFromItem={(persona: IPersonaProps) =>
-                      //   persona.text || ""
-                      // }
                       getTextFromItem={(persona: IPersonaProps) => persona.text || ""}
                       pickerSuggestionsProps={{
                         suggestionsHeaderText: "Suggested People",
