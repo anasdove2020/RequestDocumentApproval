@@ -8,6 +8,7 @@ export interface ISelectedFile {
   modified?: Date;
   modifiedBy?: string;
   isFolder?: boolean;
+  contentType: string;
 }
 
 export interface IRequestApprovalModalProps {

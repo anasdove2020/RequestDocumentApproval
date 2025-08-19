@@ -7,6 +7,7 @@ import { ISelectedFile, IApprovalRequest } from "../../interfaces/IRequestApprov
 import { ISharePointService } from "../../interfaces/ISharePointService";
 import SharePointService from "../../services/SharePointService";
 import GenericDialog from "../../components/GenericDialog";
+import { CONTENT_TYPE } from "../../utils/constants";
 
 export interface IRequestDocumentApprovalCommandSetProperties {
   sampleTextOne: string;
@@ -74,8 +75,17 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
         modified: item.getValueByName("Modified"),
         modifiedBy: item.getValueByName("Author")?.title || item.getValueByName("Author"),
         isFolder: isFolder,
+        contentType: contentType
       };
     });
+
+    const allowedContentTypes = [CONTENT_TYPE.AFCA_ACTIVITY_SET, CONTENT_TYPE.AFCA_DOC, CONTENT_TYPE.AFCA_PROCESS];
+    const hasInvalidContentType = selectedFiles.some(f => !allowedContentTypes.includes(f.contentType));
+    if (hasInvalidContentType) {
+      const dialog = new GenericDialog("The selected file is not supported for request approval.", "warning");
+      dialog.show().catch(() => { /* handle error */ });
+      return;
+    }
     
     this._showApprovalModal(selectedFiles);
   }

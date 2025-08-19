@@ -82,16 +82,7 @@ export default class SharePointService implements ISharePointService {
         level: LogLevel.Info,
       });
 
-      const spIds = approvalRequest.files.map(item => String(item.id));
-
-      for (const spId of spIds) {
-        await this._sp.web.lists
-          .getByTitle(LIST_NAME.SHARED_DOCUMENT)
-          .items.getById(Number(spId))
-          .update({
-            Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL
-          });
-      }
+      await this.updateSharedDocument(approvalRequest, currentUser.displayName);
 
       return itemData;
     } catch (error) {
@@ -129,6 +120,35 @@ export default class SharePointService implements ISharePointService {
         level: LogLevel.Error,
       });
       throw error;
+    }
+  }
+
+  private async updateSharedDocument(approvalRequest: IApprovalRequest, username: string): Promise<any> {
+    const spIds = approvalRequest.files.map(item => String(item.id));
+    const today = new Date();
+    const formattedDate = `${today.getDate().toString().padStart(2, "0")}/${(today.getMonth() + 1).toString().padStart(2, "0")}/${today.getFullYear()}`;
+
+    const newHistory = `${username} - ${formattedDate} - ${approvalRequest.selfApproval
+        ? "Submitted document for self approval."
+        : "Submitted document for approval."}`;
+
+    for (const spId of spIds) {
+      const item = await this._sp.web.lists
+        .getByTitle(LIST_NAME.SHARED_DOCUMENT)
+        .items.getById(Number(spId))
+        .select("History")();
+
+      const prevHistory: string = item.History || "";
+
+      const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
+        
+      await this._sp.web.lists
+        .getByTitle(LIST_NAME.SHARED_DOCUMENT)
+        .items.getById(Number(spId))
+        .update({
+          Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
+          History: updatedHistory
+        });
     }
   }
 }
