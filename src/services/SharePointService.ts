@@ -146,8 +146,8 @@ export default class SharePointService implements ISharePointService {
         .getByTitle(LIST_NAME.SHARED_DOCUMENT)
         .items.getById(Number(spId))
         .update({
-          Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
-          History: updatedHistory
+          Approval_x0020_Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
+          Approval_x0020_History: updatedHistory
         });
     }
   }

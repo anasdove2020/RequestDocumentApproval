@@ -80,9 +80,15 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
     });
 
     const allowedContentTypes = [CONTENT_TYPE.AFCA_ACTIVITY_SET, CONTENT_TYPE.AFCA_DOC, CONTENT_TYPE.AFCA_PROCESS];
-    const hasInvalidContentType = selectedFiles.some(f => !allowedContentTypes.includes(f.contentType));
-    if (hasInvalidContentType) {
-      const dialog = new GenericDialog("The selected file is not supported for request approval.", "warning");
+    const invalidFiles = selectedFiles.filter(
+      f => !allowedContentTypes.includes(f.contentType)
+    );
+
+    if (invalidFiles.length > 0) {
+      const invalidNames = invalidFiles.map(f => `- ${f.name}`).join("\n");
+      const message = `The following files are not supported for request approval:\n${invalidNames}`;
+      const htmlMessage = message.replace(/\n/g, "<br />");
+      const dialog = new GenericDialog(htmlMessage, "warning");
       dialog.show().catch(() => { /* handle error */ });
       return;
     }

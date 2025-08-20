@@ -71,6 +71,7 @@ export default class GenericDialog extends BaseDialog {
           color:#555; 
           margin:0 0 20px 0;
           line-height:1.5;
+          text-align:left;
         ">
           ${this.message}
         </p>
