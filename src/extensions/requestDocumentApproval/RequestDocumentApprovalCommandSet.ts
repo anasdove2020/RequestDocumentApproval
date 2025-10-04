@@ -20,6 +20,15 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
 
   public async onInit(): Promise<void> {
     this._sharePointListService = this.context.serviceScope.consume(SharePointService.serviceKey);
+
+    const mainUrl = "https://mqxd.sharepoint.com";
+    const mainSite = "Sandpit";
+    const mainAprrovalList = "Request Approval";
+
+    const mainSiteUrl = `${mainUrl}/sites/${mainSite}`;
+    const mainRequestApprovalUrl = `/sites/${mainSite}/Lists/${mainAprrovalList}`;
+    this._sharePointListService.setMainUrl(mainSiteUrl, mainRequestApprovalUrl);
+
     this._modalContainer = document.createElement("div");
     document.body.appendChild(this._modalContainer);
     const compareOneCommand: Command = this.tryGetCommand("REQUEST_APPROVAL_COMMAND");

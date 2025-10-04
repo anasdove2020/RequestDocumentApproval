@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Web } from "@pnp/sp/webs";
 import "@pnp/sp/lists/web";
 import "@pnp/sp/items";
 import "@pnp/graph/users";
@@ -17,6 +18,8 @@ export default class SharePointService implements ISharePointService {
   public static readonly serviceKey: ServiceKey<ISharePointService> = 
     ServiceKey.create<ISharePointService>("RequestApproval.SharePointService", SharePointService);
 
+  private _mainSiteUrl: string;
+  private _mainRequestApprovalUrl: string;
   private _pageContext!: PageContext;
   private _sp: SPFI;
   private _graph: GraphFI;
@@ -33,6 +36,11 @@ export default class SharePointService implements ISharePointService {
         level: LogLevel.Verbose,
       });
     });
+  }
+
+  public setMainUrl(mainSiteUrl: string, mainRequestApprovalUrl: string): void {
+    this._mainSiteUrl = mainSiteUrl;
+    this._mainRequestApprovalUrl = mainRequestApprovalUrl;
   }
   
   public async getUsers(): Promise<any[]> {
@@ -53,11 +61,14 @@ export default class SharePointService implements ISharePointService {
         }
       }
 
+      const title = this.getFolderName(approvalRequest.files[0].serverRelativeUrl);
+      const siteCollectionUrl = this.getRelativeUrl(approvalRequest.files[0].serverRelativeUrl);
+
       const listItemData: IApprovalRequestListItem = {
-        Title: `Shared Documents`,
+        Title: title,
         ApproverId: approverIds,
         RequestorId: requestorUser.Id,
-        SitecollectionURL: "sites/Sandpit",
+        SitecollectionURL: siteCollectionUrl,
         ItemIDs: approvalRequest.files.map(item => String(item.id)).join(";"),
         Comments:
           approvalRequest.reason ||
@@ -70,9 +81,9 @@ export default class SharePointService implements ISharePointService {
           }`,
       };
 
-      const result = await this._sp.web.lists
-        .getByTitle(LIST_NAME.APPROVAL_REQUEST)
-        .items.add(listItemData);
+      const mainSiteWeb = Web(this._mainSiteUrl).using(spSPFx({ pageContext: this._pageContext }));
+      const list = mainSiteWeb.getList(this._mainRequestApprovalUrl);
+      const result = await list.items.add(listItemData);
 
       const itemData = result.data || result;
       const itemId = itemData?.Id || itemData?.ID || "Unknown";
@@ -136,9 +147,9 @@ export default class SharePointService implements ISharePointService {
       const item = await this._sp.web.lists
         .getByTitle(LIST_NAME.SHARED_DOCUMENT)
         .items.getById(Number(spId))
-        .select("History")();
+        .select("Approval_x0020_History")();
 
-      const prevHistory: string = item.History || "";
+      const prevHistory: string = item.Approval_x0020_History || "";
 
       const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
         
@@ -150,5 +161,17 @@ export default class SharePointService implements ISharePointService {
           Approval_x0020_History: updatedHistory
         });
     }
+  }
+
+  private getRelativeUrl(path: string): string {
+    const parts = path.split("/");
+    const result = parts.length > 2 ? `${parts[1]}/${parts[2]}` : "";
+    return result;
+  }
+
+  private getFolderName(path: string): string {
+    const parts = path.split("/");
+    const result = parts.length > 3 ? parts[3] : "";
+    return result;
   }
 }
