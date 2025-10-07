@@ -143,9 +143,14 @@ export default class SharePointService implements ISharePointService {
         ? "Submitted document for self approval."
         : "Submitted document for approval."}`;
 
+    let titleName = this.getFolderName(approvalRequest.files[0].serverRelativeUrl);
+    if (titleName === 'Shared Documents') {
+      titleName = LIST_NAME.SHARED_DOCUMENT;
+    }
+
     for (const spId of spIds) {
       const item = await this._sp.web.lists
-        .getByTitle(LIST_NAME.SHARED_DOCUMENT)
+        .getByTitle(titleName)
         .items.getById(Number(spId))
         .select("Approval_x0020_History")();
 
@@ -154,7 +159,7 @@ export default class SharePointService implements ISharePointService {
       const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
         
       await this._sp.web.lists
-        .getByTitle(LIST_NAME.SHARED_DOCUMENT)
+        .getByTitle(titleName)
         .items.getById(Number(spId))
         .update({
           Approval_x0020_Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,

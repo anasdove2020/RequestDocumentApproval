@@ -16,10 +16,7 @@ export class UserSearchService {
     const filteredUsers = users.filter(
       (user) =>
         (user.displayName && user.displayName.toLowerCase().indexOf(lowerQuery) !== -1) ||
-        (user.mail && user.mail.toLowerCase().indexOf(lowerQuery) !== -1) ||
-        (user.department &&
-          user.department.toLowerCase().indexOf(lowerQuery) !== -1) ||
-        (user.jobTitle && user.jobTitle.toLowerCase().indexOf(lowerQuery) !== -1)
+        (user.mail && user.mail.toLowerCase().indexOf(lowerQuery) !== -1)
     );
 
     return filteredUsers.slice(0, maxResults);
