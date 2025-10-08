@@ -1,7 +1,7 @@
 export interface IApprovalRequestListItem {
   Title: string;
   Comments?: string;
-  ApproverId: number[];
+  ApproversId: number[];
   RequestorId: number;
   SitecollectionURL: string;
   ItemIDs: string;

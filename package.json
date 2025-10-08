@@ -27,7 +27,7 @@
     "@microsoft/sp-dialog": "1.19.0",
     "@microsoft/sp-listview-extensibility": "1.19.0",
     "@microsoft/sp-property-pane": "1.19.0",
-    "@pnp/graph": "^4.16.0",
+    "@pnp/graph": "^3.21.0",
     "@pnp/logging": "^4.16.0",
     "@pnp/queryable": "^4.16.0",
     "@pnp/sp": "^4.16.0",

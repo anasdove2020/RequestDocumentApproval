@@ -44,10 +44,23 @@ export default class SharePointService implements ISharePointService {
   }
   
   public async getUsers(): Promise<any[]> {
-    const users = await this._graph.users();
+    const top = 100;
+    let users: any[] = [];
+    let page = await this._graph.users.top(top).paged();
+
+    while (page) {
+      users = users.concat(page.value);
+
+      if (page.hasNext) {
+        page = await page.next();
+      } else {
+        break;
+      }
+    }
+
     return users;
   }
-  
+
   public async submitApprovalRequest(approvalRequest: IApprovalRequest): Promise<any> {
     try {
       const currentUser = this._pageContext.user;
@@ -66,7 +79,7 @@ export default class SharePointService implements ISharePointService {
 
       const listItemData: IApprovalRequestListItem = {
         Title: title,
-        ApproverId: approverIds,
+        ApproversId: approverIds,
         RequestorId: requestorUser.Id,
         SitecollectionURL: siteCollectionUrl,
         ItemIDs: approvalRequest.files.map(item => String(item.id)).join(";"),
@@ -152,9 +165,9 @@ export default class SharePointService implements ISharePointService {
       const item = await this._sp.web.lists
         .getByTitle(titleName)
         .items.getById(Number(spId))
-        .select("Approval_x0020_History")();
+        .select("ApprovalHistory")();
 
-      const prevHistory: string = item.Approval_x0020_History || "";
+      const prevHistory: string = item.ApprovalHistory || "";
 
       const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
         
@@ -162,8 +175,8 @@ export default class SharePointService implements ISharePointService {
         .getByTitle(titleName)
         .items.getById(Number(spId))
         .update({
-          Approval_x0020_Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
-          Approval_x0020_History: updatedHistory
+          ApprovalStatus: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
+          ApprovalHistory: updatedHistory
         });
     }
   }
