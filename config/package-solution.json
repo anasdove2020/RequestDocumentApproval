@@ -3,7 +3,7 @@
   "solution": {
     "name": "request-document-approval",
     "id": "584e39fc-00dc-4e27-b570-5c19a23f583d",
-    "version": "1.0.0.10",
+    "version": "1.0.0.11",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": false,
     "isDomainIsolated": false,

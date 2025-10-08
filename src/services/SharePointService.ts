@@ -63,13 +63,15 @@ export default class SharePointService implements ISharePointService {
 
   public async submitApprovalRequest(approvalRequest: IApprovalRequest): Promise<any> {
     try {
+      const mainSiteWeb = Web(this._mainSiteUrl).using(spSPFx({ pageContext: this._pageContext }));
+
       const currentUser = this._pageContext.user;
       const requestorUser = await this._sp.web.ensureUser(currentUser.loginName);
       const approverIds: number[] = [];
 
       if (approvalRequest.approvers.length > 0) {
         for (const approver of approvalRequest.approvers) {
-          const approverUser = await this._sp.web.ensureUser(approver);
+          const approverUser = await mainSiteWeb.ensureUser(approver);
           approverIds.push(approverUser.Id);
         }
       }
@@ -93,8 +95,7 @@ export default class SharePointService implements ISharePointService {
               : "Pending approval."
           }`,
       };
-
-      const mainSiteWeb = Web(this._mainSiteUrl).using(spSPFx({ pageContext: this._pageContext }));
+      
       const list = mainSiteWeb.getList(this._mainRequestApprovalUrl);
       const result = await list.items.add(listItemData);
 
