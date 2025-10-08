@@ -66,7 +66,7 @@ export default class SharePointService implements ISharePointService {
       const mainSiteWeb = Web(this._mainSiteUrl).using(spSPFx({ pageContext: this._pageContext }));
 
       const currentUser = this._pageContext.user;
-      const requestorUser = await this._sp.web.ensureUser(currentUser.loginName);
+      const requestorUser = await mainSiteWeb.ensureUser(currentUser.loginName);
       const approverIds: number[] = [];
 
       if (approvalRequest.approvers.length > 0) {
