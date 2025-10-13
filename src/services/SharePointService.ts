@@ -166,18 +166,27 @@ export default class SharePointService implements ISharePointService {
       const item = await this._sp.web.lists
         .getByTitle(titleName)
         .items.getById(Number(spId))
-        .select("ApprovalHistory")();
+        .select("ApprovalHistory,AuthorComment")();
 
       const prevHistory: string = item.ApprovalHistory || "";
 
       const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
+
+      let updatedAuthorComment: string = item.AuthorComment || "";
+
+      if (!approvalRequest.selfApproval) {
+        const newAuthorComment = `${username} - ${formattedDate} - ${approvalRequest.reason}`;
+
+        updatedAuthorComment = item.AuthorComment ? `${updatedAuthorComment}\n${newAuthorComment}` : newAuthorComment;
+      }
         
       await this._sp.web.lists
         .getByTitle(titleName)
         .items.getById(Number(spId))
         .update({
           ApprovalStatus: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
-          ApprovalHistory: updatedHistory
+          ApprovalHistory: updatedHistory,
+          AuthorComment: updatedAuthorComment
         });
     }
   }
