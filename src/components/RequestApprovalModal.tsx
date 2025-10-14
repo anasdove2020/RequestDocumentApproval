@@ -23,6 +23,7 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
   const [selfApproval, setSelfApproval] = React.useState<boolean | undefined>(undefined);
   const [selectedApprovers, setSelectedApprovers] = React.useState<IPersonaProps[]>([]);
   const [comments, setComments] = React.useState<string>("");
+  const [authorComments, setAuthorComments] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
 
@@ -30,6 +31,7 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
     setSelfApproval(undefined);
     setSelectedApprovers([]);
     setComments("");
+    setAuthorComments("");
     setIsSubmitting(false);
     setErrorMessage(undefined);
   }, []);
@@ -82,6 +84,11 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
       if (errorMessage) setErrorMessage(undefined);
     }, [errorMessage]);
 
+  const handleAuthorCommentsChange = React.useCallback((_: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
+    setAuthorComments(newValue || "");
+    if (errorMessage) setErrorMessage(undefined);
+  }, [errorMessage]);
+
   const handleSubmit = React.useCallback(async (): Promise<void> => {
     if (selfApproval === undefined) {
       setErrorMessage(
@@ -108,6 +115,7 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
       const approvalRequest: IApprovalRequest = {
         files: selectedFiles,
         reason: selfApproval === true ? "Self-approved" : comments.trim(),
+        authorComments: selfApproval === true ? authorComments.trim(): "",
         approvers:
           selfApproval === true
             ? []
@@ -130,6 +138,7 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
     selfApproval,
     selectedApprovers,
     comments,
+    authorComments,
     selectedFiles,
     onSubmit,
     resetForm,
@@ -186,6 +195,19 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
                 onChange={handleSelfApprovalChange}
                 required
               />
+
+              {selfApproval === true && (
+                <>
+                  <TextField
+                    label="Author comments"
+                    placeholder="Please provide comments..."
+                    multiline
+                    rows={4}
+                    value={authorComments}
+                    onChange={handleAuthorCommentsChange}
+                  />
+                </>
+              )}
 
               {selfApproval === false && (
                 /* If NO - Show approvers and comments fields */

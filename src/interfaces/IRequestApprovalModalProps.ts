@@ -22,6 +22,7 @@ export interface IRequestApprovalModalProps {
 export interface IApprovalRequest {
   files: ISelectedFile[];
   reason: string;
+  authorComments: string;
   approvers: string[];
   priority: 'Low' | 'Medium' | 'High';
   dueDate?: Date;

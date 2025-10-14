@@ -174,8 +174,8 @@ export default class SharePointService implements ISharePointService {
 
       let updatedAuthorComment: string = item.AuthorComment || "";
 
-      if (!approvalRequest.selfApproval) {
-        const newAuthorComment = `${username} - ${formattedDate} - ${approvalRequest.reason}`;
+      if (approvalRequest.selfApproval) {
+        const newAuthorComment = `${username} - ${formattedDate} - ${approvalRequest.authorComments}`;
 
         updatedAuthorComment = item.AuthorComment ? `${updatedAuthorComment}\n${newAuthorComment}` : newAuthorComment;
       }
