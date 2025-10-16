@@ -85,17 +85,9 @@ export default class SharePointService implements ISharePointService {
         RequestorId: requestorUser.Id,
         SitecollectionURL: siteCollectionUrl,
         ItemIDs: approvalRequest.files.map(item => String(item.id)).join(";"),
-        Comments:
-          approvalRequest.reason ||
-          `Request for ${approvalRequest.files.length} file(s). Priority: ${
-            approvalRequest.priority
-          }. ${
-            approvalRequest.selfApproval
-              ? "Self-approved."
-              : "Pending approval."
-          }`,
+        Comments: approvalRequest.reason
       };
-      
+
       const list = mainSiteWeb.getList(this._mainRequestApprovalUrl);
       const result = await list.items.add(listItemData);
 
@@ -166,27 +158,18 @@ export default class SharePointService implements ISharePointService {
       const item = await this._sp.web.lists
         .getByTitle(titleName)
         .items.getById(Number(spId))
-        .select("ApprovalHistory,AuthorComment")();
+        .select("ApprovalHistory")();
 
       const prevHistory: string = item.ApprovalHistory || "";
 
       const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
 
-      let updatedAuthorComment: string = item.AuthorComment || "";
-
-      if (approvalRequest.selfApproval) {
-        const newAuthorComment = `${username} - ${formattedDate} - ${approvalRequest.authorComments}`;
-
-        updatedAuthorComment = item.AuthorComment ? `${updatedAuthorComment}\n${newAuthorComment}` : newAuthorComment;
-      }
-        
       await this._sp.web.lists
         .getByTitle(titleName)
         .items.getById(Number(spId))
         .update({
           ApprovalStatus: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
-          ApprovalHistory: updatedHistory,
-          AuthorComment: updatedAuthorComment
+          ApprovalHistory: updatedHistory
         });
     }
   }

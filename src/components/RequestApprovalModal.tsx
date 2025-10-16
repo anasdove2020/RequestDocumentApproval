@@ -114,7 +114,7 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
     try {
       const approvalRequest: IApprovalRequest = {
         files: selectedFiles,
-        reason: selfApproval === true ? "Self-approved" : comments.trim(),
+        reason: selfApproval === true ? authorComments.trim() : comments.trim(),
         authorComments: selfApproval === true ? authorComments.trim(): "",
         approvers:
           selfApproval === true
