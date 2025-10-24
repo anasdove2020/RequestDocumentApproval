@@ -158,9 +158,9 @@ export default class SharePointService implements ISharePointService {
       const item = await this._sp.web.lists
         .getByTitle(titleName)
         .items.getById(Number(spId))
-        .select("ApprovalHistory")();
+        .select("Approval_x0020_History")();
 
-      const prevHistory: string = item.ApprovalHistory || "";
+      const prevHistory: string = item.Approval_x0020_History || "";
 
       const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
 
@@ -168,8 +168,8 @@ export default class SharePointService implements ISharePointService {
         .getByTitle(titleName)
         .items.getById(Number(spId))
         .update({
-          ApprovalStatus: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
-          ApprovalHistory: updatedHistory
+          Approval_x0020_Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
+          Approval_x0020_History: updatedHistory
         });
     }
   }
