@@ -140,7 +140,12 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
             .catch(() => { /* handle error */ });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      Dialog.alert(`Failed to submit approval request to SharePoint: ${errorMessage} Please check the SharePoint List exists and you have permissions to write to it.`).catch(() => { /* handle error */ });
+
+      if (error.message?.includes("locked")) {
+        Dialog.alert(`Failed to submit approval request to SharePoint since the file is locked for editing.`).catch(() => { /* handle error */ });
+      } else {
+        Dialog.alert(`Failed to submit approval request to SharePoint: ${errorMessage} Please check the SharePoint List exists and you have permissions to write to it.`).catch(() => { /* handle error */ });
+      }
       throw error; // Re-throw so modal can handle the error
     }
   }

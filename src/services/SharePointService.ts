@@ -62,6 +62,8 @@ export default class SharePointService implements ISharePointService {
   }
 
   public async submitApprovalRequest(approvalRequest: IApprovalRequest): Promise<any> {
+    let createdItemId: number | null = null;
+
     try {
       const mainSiteWeb = Web(this._mainSiteUrl).using(spSPFx({ pageContext: this._pageContext }));
 
@@ -90,23 +92,27 @@ export default class SharePointService implements ISharePointService {
 
       const list = mainSiteWeb.getList(this._mainRequestApprovalUrl);
       const result = await list.items.add(listItemData);
-
-      const itemData = result.data || result;
-      const itemId = itemData?.Id || itemData?.ID || "Unknown";
+      createdItemId = result.Id;
 
       Logger.log({
-        message: `✅ Approval request submitted successfully with ID: ${itemId}`,
+        message: `✅ Approval request submitted successfully with ID: ${createdItemId}`,
         level: LogLevel.Info,
       });
 
       await this.updateSharedDocument(approvalRequest, currentUser.displayName);
 
-      return itemData;
+      return result;
     } catch (error) {
       Logger.log({
         message: `❌ Error submitting approval request: ${error.message}`,
         level: LogLevel.Error,
       });
+
+      if (createdItemId) {
+        const mainSiteWeb = Web(this._mainSiteUrl).using(spSPFx({ pageContext: this._pageContext }));
+        await mainSiteWeb.getList(this._mainRequestApprovalUrl).items.getById(createdItemId).recycle();
+      }
+
       throw error;
     }
   }
@@ -155,22 +161,39 @@ export default class SharePointService implements ISharePointService {
     }
 
     for (const spId of spIds) {
-      const item = await this._sp.web.lists
-        .getByTitle(titleName)
-        .items.getById(Number(spId))
-        .select("Approval_x0020_History")();
+      const itemRef = this._sp.web.lists.getByTitle(titleName).items.getById(Number(spId));
+
+      const item = await itemRef.select("Approval_x0020_History")();
 
       const prevHistory: string = item.Approval_x0020_History || "";
 
       const updatedHistory = prevHistory ? `${prevHistory}\n${newHistory}` : newHistory;
 
-      await this._sp.web.lists
-        .getByTitle(titleName)
-        .items.getById(Number(spId))
-        .update({
-          Approval_x0020_Status: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL,
-          Approval_x0020_History: updatedHistory
-        });
+      const formattedDateTime = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()} ${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`;
+
+      const updates = [
+        { FieldName: "Approval_x0020_Status", FieldValue: approvalRequest.selfApproval ? DOCUMENT_STATUS.AUTO_APPROVED : DOCUMENT_STATUS.WAITING_FOR_APPROVAL },
+        { FieldName: "Approval_x0020_History", FieldValue: updatedHistory },
+        { FieldName: "Approval_x0020_Date", FieldValue: formattedDateTime }
+      ];
+
+      try {
+        await itemRef.validateUpdateListItem(updates);
+      } catch(error: any) {
+        if (error.message?.includes("locked")) {
+          Logger.log({
+            message: `⚠️ File with ID ${spId} is locked for editing. Skipping update.`,
+            level: LogLevel.Error,
+          });
+        } else {
+          Logger.log({
+            message: `❌ Failed to update item ${spId}`,
+            level: LogLevel.Error,
+          });
+        }
+        
+        throw error;
+      }
     }
   }
 
@@ -183,6 +206,11 @@ export default class SharePointService implements ISharePointService {
   private getFolderName(path: string): string {
     const parts = path.split("/");
     const result = parts.length > 3 ? parts[3] : "";
+
+    if (result === 'Shared Documents') {
+      return 'Documents';
+    }
+
     return result;
   }
 }
