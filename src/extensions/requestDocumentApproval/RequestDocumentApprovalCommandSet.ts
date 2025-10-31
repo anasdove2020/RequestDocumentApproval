@@ -8,6 +8,7 @@ import { ISharePointService } from "../../interfaces/ISharePointService";
 import SharePointService from "../../services/SharePointService";
 import GenericDialog from "../../components/GenericDialog";
 import { CONTENT_TYPE } from "../../utils/constants";
+import { ThemeProvider, ThemeChangedEventArgs, IReadonlyTheme } from '@microsoft/sp-component-base';
 
 export interface IRequestDocumentApprovalCommandSetProperties {
   sampleTextOne: string;
@@ -17,6 +18,8 @@ export interface IRequestDocumentApprovalCommandSetProperties {
 export default class RequestDocumentApprovalCommandSet extends BaseListViewCommandSet<IRequestDocumentApprovalCommandSetProperties> {
   private _sharePointListService: ISharePointService;
   private _modalContainer: HTMLDivElement | null = null;
+  private _themeProvider: ThemeProvider;
+  private _theme: IReadonlyTheme | undefined;
 
   public async onInit(): Promise<void> {
     this._sharePointListService = this.context.serviceScope.consume(SharePointService.serviceKey);
@@ -28,6 +31,12 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
     const mainSiteUrl = `${mainUrl}/sites/${mainSite}`;
     const mainRequestApprovalUrl = `/sites/${mainSite}/Lists/${mainAprrovalList}`;
     this._sharePointListService.setMainUrl(mainSiteUrl, mainRequestApprovalUrl);
+
+    // Theme provider init
+    this._themeProvider = this.context.serviceScope.consume(ThemeProvider.serviceKey);
+    this._theme = this._themeProvider.tryGetTheme();
+    this._applyThemeToIcon(this._theme);
+    this._themeProvider.themeChangedEvent.add(this, this._handleThemeChanged);
 
     this._modalContainer = document.createElement("div");
     document.body.appendChild(this._modalContainer);
@@ -44,6 +53,11 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
       document.body.removeChild(this._modalContainer);
       this._modalContainer = null;
     }
+
+    if (this._themeProvider) {
+      this._themeProvider.themeChangedEvent.remove(this, this._handleThemeChanged);
+    }
+
     super.onDispose();
   }
 
@@ -158,4 +172,29 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
     }
     this.raiseOnChange();
   };
+
+  private _handleThemeChanged = (args: ThemeChangedEventArgs): void => {
+    this._theme = args.theme;
+    this._applyThemeToIcon(this._theme);
+  };
+
+  private _applyThemeToIcon(theme: IReadonlyTheme | undefined): void {
+    const command = this.tryGetCommand("REQUEST_APPROVAL_COMMAND");
+    if (!command) return;
+  
+    const color = theme?.palette?.themePrimary || "#0078d4"; // default SharePoint blue
+  
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+          fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Document outline -->
+        <path d="M9 2h6l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+        <!-- Checkmark -->
+        <polyline points="9 14 11 16 15 12"/>
+      </svg>
+    `;
+
+    const base64 = btoa(svg);
+    command.iconImageUrl = `data:image/svg+xml;base64,${base64}`;
+  }
 }
