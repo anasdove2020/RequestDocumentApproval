@@ -7,7 +7,7 @@ import { ISelectedFile, IApprovalRequest } from "../../interfaces/IRequestApprov
 import { ISharePointService } from "../../interfaces/ISharePointService";
 import SharePointService from "../../services/SharePointService";
 import GenericDialog from "../../components/GenericDialog";
-import { CONTENT_TYPE } from "../../utils/constants";
+// import { CONTENT_TYPE } from "../../utils/constants";
 import { ThemeProvider, ThemeChangedEventArgs, IReadonlyTheme } from '@microsoft/sp-component-base';
 
 export interface IRequestDocumentApprovalCommandSetProperties {
@@ -102,19 +102,19 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
       };
     });
 
-    const allowedContentTypes = [CONTENT_TYPE.AFCA_ACTIVITY_SET, CONTENT_TYPE.AFCA_DOC, CONTENT_TYPE.AFCA_PROCESS];
-    const invalidFiles = selectedFiles.filter(
-      f => !allowedContentTypes.includes(f.contentType)
-    );
+    // const allowedContentTypes = [CONTENT_TYPE.AFCA_ACTIVITY_SET, CONTENT_TYPE.AFCA_DOC, CONTENT_TYPE.AFCA_PROCESS];
+    // const invalidFiles = selectedFiles.filter(
+    //   f => !allowedContentTypes.includes(f.contentType)
+    // );
 
-    if (invalidFiles.length > 0) {
-      const invalidNames = invalidFiles.map(f => `- ${f.name}`).join("\n");
-      const message = `The following files are not supported for request approval:\n${invalidNames}`;
-      const htmlMessage = message.replace(/\n/g, "<br />");
-      const dialog = new GenericDialog(htmlMessage, "warning");
-      dialog.show().catch(() => { /* handle error */ });
-      return;
-    }
+    // if (invalidFiles.length > 0) {
+    //   const invalidNames = invalidFiles.map(f => `- ${f.name}`).join("\n");
+    //   const message = `The following files are not supported for request approval:\n${invalidNames}`;
+    //   const htmlMessage = message.replace(/\n/g, "<br />");
+    //   const dialog = new GenericDialog(htmlMessage, "warning");
+    //   dialog.show().catch(() => { /* handle error */ });
+    //   return;
+    // }
     
     this._showApprovalModal(selectedFiles);
   }
@@ -154,12 +154,22 @@ export default class RequestDocumentApprovalCommandSet extends BaseListViewComma
             .catch(() => { /* handle error */ });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      let friendlyMessage = "";
 
       if (error.message?.includes("locked")) {
-        Dialog.alert(`Failed to submit approval request to SharePoint since the file is locked for editing.`).catch(() => { /* handle error */ });
-      } else {
-        Dialog.alert(`Failed to submit approval request to SharePoint: ${errorMessage} Please check the SharePoint List exists and you have permissions to write to it.`).catch(() => { /* handle error */ });
+        friendlyMessage = `Failed to submit approval request because the file is currently locked for editing. Please close the file and try again.`;
+      } 
+      else if (errorMessage.includes("does not exist")) {
+        const match = errorMessage.match(/Column '([^']+)' does not exist/i);
+        const columnName = match ? match[1].replace(/_x0020_/g, " ") : "Unknown";
+        friendlyMessage = `The column "${columnName}" does not exist in the target SharePoint list. Please make sure this column is created before submitting the request.`;
+      } 
+      else {
+        friendlyMessage = `Failed to submit approval request to SharePoint. Please ensure the SharePoint list exists and you have permission to update it.`;
       }
+
+      Dialog.alert(friendlyMessage).catch(() => { /* ignore */ });
+
       throw error; // Re-throw so modal can handle the error
     }
   }

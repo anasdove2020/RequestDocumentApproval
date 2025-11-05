@@ -128,10 +128,24 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
 
       await onSubmit(approvalRequest);
       resetForm();
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      setErrorMessage(`Failed to submit approval request: ${errorMessage}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      let friendlyMessage = "";
+
+      if (error.message?.includes("locked")) {
+        friendlyMessage = `Failed to submit approval request because the file is currently locked for editing. Please close the file and try again.`;
+      } 
+      else if (errorMessage.includes("does not exist")) {
+        const match = errorMessage.match(/Column '([^']+)' does not exist/i);
+        const columnName = match ? match[1].replace(/_x0020_/g, " ") : "Unknown";
+        friendlyMessage = `The column "${columnName}" does not exist in the target SharePoint list. Please make sure this column is created before submitting the request.`;
+      } 
+      else {
+        friendlyMessage = `Failed to submit approval request to SharePoint. Please ensure the SharePoint list exists and you have permission to update it.`;
+      }
+
+      setErrorMessage(friendlyMessage);
       setIsSubmitting(false);
     }
   }, [
@@ -175,7 +189,7 @@ export const RequestApprovalModal: React.FC<IRequestApprovalModalProps> = ({
           {errorMessage && (
             <MessageBar
               messageBarType={MessageBarType.error}
-              isMultiline={false}
+              isMultiline={true}
             >
               {errorMessage}
             </MessageBar>
