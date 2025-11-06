@@ -44,7 +44,7 @@ export default class SharePointService implements ISharePointService {
   }
   
   public async getUsers(): Promise<any[]> {
-    const top = 100;
+    const top = 500;
     let users: any[] = [];
     let page = await this._graph.users.top(top).paged();
 
